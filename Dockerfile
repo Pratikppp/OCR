@@ -1,30 +1,26 @@
-# Use official .NET SDK image for build
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-
-# Set working directory
 WORKDIR /src
 
-# Copy csproj and restore dependencies
-COPY *.csproj ./
+# Copy project file and restore dependencies
+COPY *.csproj .
 RUN dotnet restore
 
-# Copy everything else
-COPY . ./
-
-# Publish the app
+# Copy everything else and build
+COPY . .
 RUN dotnet publish -c Release -o /app/publish
 
-# Use .NET 8 runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-
-# Set working directory
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-
-# Copy published files
 COPY --from=build /app/publish .
 
 # Expose port
-EXPOSE 5048
+EXPOSE 8080
 
-# Start the app
+# Environment variables
+ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+# Start the application
 ENTRYPOINT ["dotnet", "HealthCardApi.dll"]
