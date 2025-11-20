@@ -25,6 +25,7 @@ builder.Services.AddSingleton<FastTextractService>();
 var app = builder.Build();
 
 
+app.UseCors("AllowAll");
 
 app.MapPost("/extract", async (HttpContext context) =>
 {
