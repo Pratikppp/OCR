@@ -1,0 +1,67 @@
+using Amazon.Textract;
+using Amazon.Textract.Model;
+using HealthCardApi.Mappers;
+using Microsoft.AspNetCore.Http;
+
+namespace HealthCardApi.Services
+{
+    public class FastTextractService
+    {
+        private readonly IAmazonTextract _textract;
+
+        public FastTextractService(IAmazonTextract textract)
+        {
+            _textract = textract;
+        }
+
+        // Synchronous document analysis - much faster for simple documents
+        public async Task<AnalysisResult> AnalyzeDocumentSync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("File is empty.");
+
+            // Convert file to memory stream for direct processing
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream);
+            stream.Position = 0; // Reset stream position
+
+            var request = new DetectDocumentTextRequest
+            {
+                Document = new Document
+                {
+                    Bytes = stream
+                }
+            };
+
+            // Single API call - no polling needed!
+            var response = await _textract.DetectDocumentTextAsync(request);
+            
+            // Extract raw text
+            var rawText = ExtractTextFromBlocks(response.Blocks);
+            
+            // Map to structured data
+            var structuredData = HealthCardMapper.Map(response.Blocks);
+
+            return new AnalysisResult
+            {
+                RawText = rawText,
+                StructuredData = structuredData
+            };
+        }
+
+        private string ExtractTextFromBlocks(List<Block> blocks)
+        {
+            var lines = blocks
+                .Where(b => b.BlockType == BlockType.LINE && !string.IsNullOrEmpty(b.Text))
+                .Select(b => b.Text);
+
+            return string.Join(Environment.NewLine, lines);
+        }
+    }
+
+    public class AnalysisResult
+    {
+        public string RawText { get; set; } = string.Empty;
+        public Dictionary<string, string> StructuredData { get; set; } = new Dictionary<string, string>();
+    }
+}
