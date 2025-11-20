@@ -50,27 +50,31 @@ app.MapPost("/extract", async (HttpContext context) =>
         context.Response.ContentType = "application/json";
         
         await context.Response.WriteAsync($$"""
-        {
-            "rawText": "{{System.Text.Json.JsonEncodedText.Encode(result.RawText)}}",
-            "structuredData": {
-                "holder_name": "{{result.StructuredData["holder_name"]}}",
-                "holder_address": "{{result.StructuredData["holder_address"]}}",
-                "holder_postal_city": "{{result.StructuredData["holder_postal_city"]}}",
-                "cpr": "{{result.StructuredData["cpr"]}}",
-                "doctor_name": "{{result.StructuredData["doctor_name"]}}",
-                "doctor_address": "{{result.StructuredData["doctor_address"]}}",
-                "doctor_phone": "{{result.StructuredData["doctor_phone"]}}",
-                "municipality": "{{result.StructuredData["municipality"]}}",
-                "region": "{{result.StructuredData["region"]}}",
-                "valid_from": "{{result.StructuredData["valid_from"]}}",
-                "date_of_birth": "{{result.StructuredData["date_of_birth"]}}",
-                "age": "{{result.StructuredData["age"]}}",
-                "gender": "{{result.StructuredData["gender"]}}"
-            },
-            "message": "Processing completed successfully.",
-            "processingTime": "fast_sync"
-        }
-        """);
+{
+    "rawText": "{{System.Text.Json.JsonEncodedText.Encode(result.RawText)}}",
+    "structuredData": {
+        "holder_first_name": "{{result.StructuredData["holder_first_name"]}}",
+        "holder_surname": "{{result.StructuredData["holder_surname"]}}",
+        "holder_name": "{{result.StructuredData["holder_name"]}}",
+        "holder_address": "{{result.StructuredData["holder_address"]}}",
+        "postal_code": "{{result.StructuredData["postal_code"]}}",
+        "city": "{{result.StructuredData["city"]}}",
+        "holder_postal_city": "{{result.StructuredData["holder_postal_city"]}}",
+        "cpr": "{{result.StructuredData["cpr"]}}",
+        "doctor_name": "{{result.StructuredData["doctor_name"]}}",
+        "doctor_address": "{{result.StructuredData["doctor_address"]}}",
+        "doctor_phone": "{{result.StructuredData["doctor_phone"]}}",
+        "municipality": "{{result.StructuredData["municipality"]}}",
+        "region": "{{result.StructuredData["region"]}}",
+        "valid_from": "{{result.StructuredData["valid_from"]}}",
+        "date_of_birth": "{{result.StructuredData["date_of_birth"]}}",
+        "age": "{{result.StructuredData["age"]}}",
+        "gender": "{{result.StructuredData["gender"]}}"
+    },
+    "message": "Processing completed successfully.",
+    "processingTime": "fast_sync"
+    }
+    """);   
     }
     catch (Exception ex)
     {
