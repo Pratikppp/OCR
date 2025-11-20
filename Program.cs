@@ -5,6 +5,16 @@ using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddAWSService<IAmazonTextract>();
@@ -13,6 +23,8 @@ builder.Services.AddAWSService<IAmazonTextract>();
 builder.Services.AddSingleton<FastTextractService>(); 
 
 var app = builder.Build();
+
+
 
 app.MapPost("/extract", async (HttpContext context) =>
 {
@@ -36,7 +48,7 @@ app.MapPost("/extract", async (HttpContext context) =>
         
         context.Response.StatusCode = 200;
         context.Response.ContentType = "application/json";
-        // In the response section of Program.cs, add the new fields:
+        
         await context.Response.WriteAsync($$"""
         {
     "rawText": "{{System.Text.Json.JsonEncodedText.Encode(result.RawText)}}",

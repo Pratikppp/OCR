@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HealthCardApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+22033d1616327117f15c052924dd86180baa2c0d")]
 [assembly: System.Reflection.AssemblyProductAttribute("HealthCardApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HealthCardApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

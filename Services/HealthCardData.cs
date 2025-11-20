@@ -5,5 +5,5 @@ public class HealthCardData
     public string HealthCardNumber { get; set; }
     public string Phone { get; set; }
     public string ValidFrom { get; set; }
-    public string ExtraInfo { get; set; } // any additional info
+    public string ExtraInfo { get; set; } 
 }
