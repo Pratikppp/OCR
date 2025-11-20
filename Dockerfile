@@ -14,8 +14,8 @@ COPY . ./
 # Publish the app
 RUN dotnet publish -c Release -o /app/publish
 
-# Use runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+# Use .NET 8 runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 # Set working directory
 WORKDIR /app
