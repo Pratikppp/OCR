@@ -29,3 +29,4 @@ C:\Projects\HealthCardApi\obj\Debug\net8.0\refint\HealthCardApi.dll
 C:\Projects\HealthCardApi\obj\Debug\net8.0\HealthCardApi.pdb
 C:\Projects\HealthCardApi\obj\Debug\net8.0\HealthCardApi.genruntimeconfig.cache
 C:\Projects\HealthCardApi\obj\Debug\net8.0\ref\HealthCardApi.dll
+C:\Projects\HealthCardApi\obj\Debug\net8.0\HealthCardApi.sourcelink.json

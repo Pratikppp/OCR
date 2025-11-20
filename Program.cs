@@ -50,7 +50,7 @@ app.MapPost("/extract", async (HttpContext context) =>
         context.Response.ContentType = "application/json";
         
         await context.Response.WriteAsync($$"""
-{
+    {
     "rawText": "{{System.Text.Json.JsonEncodedText.Encode(result.RawText)}}",
     "structuredData": {
         "holder_first_name": "{{result.StructuredData["holder_first_name"]}}",
@@ -70,11 +70,11 @@ app.MapPost("/extract", async (HttpContext context) =>
         "date_of_birth": "{{result.StructuredData["date_of_birth"]}}",
         "age": "{{result.StructuredData["age"]}}",
         "gender": "{{result.StructuredData["gender"]}}"
-    },
-    "message": "Processing completed successfully.",
-    "processingTime": "fast_sync"
-    }
-    """);   
+                    },
+        "message": "Processing completed successfully.",
+        "processingTime": "fast_sync"
+        }
+""");   
     }
     catch (Exception ex)
     {
