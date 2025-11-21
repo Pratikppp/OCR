@@ -83,4 +83,49 @@ app.MapPost("/extract", async (HttpContext context) =>
     }
 });
 
+app.MapGet("/travel-info", async (HttpContext context) =>
+{
+    var response = new
+    {
+        weather = new
+        {
+            conditions = "Partially cloudy",
+            description = "Partly cloudy throughout the day",
+            icon = "partly-cloudy-day"
+        },
+        delays = new
+        {
+            departures = "50%",
+            arrivals = "30%"
+        },
+        safety = new
+        {
+            level = "HighRisk"
+        },
+        health = new
+        {
+            vaccinations = new[] 
+            {
+                "Routine",
+                "Hepatitis A & B",
+                "Typhoid",
+                "Rabies",
+                "Polio"
+            },
+            diseases = new[]
+            {
+                "Malaria (high risk)",
+                "Cholera",
+                "Tuberculosis",
+                "Crimean-Congo hemorrhagic fever"
+            },
+            malariaRisk = "High, especially rural areas",
+            precautions = "Avoid animal bites"
+        }
+    };
+    
+    context.Response.ContentType = "application/json";
+    await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+});
+
 app.Run();
