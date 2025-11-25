@@ -20,6 +20,7 @@ builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddAWSService<IAmazonTextract>();
 builder.Services.AddSingleton<FastTextractService>(); 
 builder.Services.AddSingleton<PdfToImageService>();
+builder.Services.AddSingleton<PdfTextExtractionService>();
 
 var app = builder.Build();
 
@@ -31,7 +32,7 @@ var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
 // Register the new service
-builder.Services.AddSingleton<PdfTextExtractionService>();
+
 
 // Update your extract endpoint
 app.MapPost("/extract", async (HttpContext context) =>
