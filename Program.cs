@@ -19,6 +19,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddAWSService<IAmazonTextract>();
 builder.Services.AddSingleton<FastTextractService>(); 
+builder.Services.AddSingleton<PdfToImageService>();
 
 var app = builder.Build();
 
@@ -44,7 +45,25 @@ app.MapPost("/extract", async (HttpContext context) =>
     try
     {
         var fastTextractService = context.RequestServices.GetRequiredService<FastTextractService>();
-        var result = await fastTextractService.AnalyzeDocumentSync(file);
+        var pdfToImageService = context.RequestServices.GetRequiredService<PdfToImageService>();
+        
+        AnalysisResult result;
+        
+        // Check if file is PDF
+        if (pdfToImageService.IsPdfFile(file))
+        {
+            // Convert PDF to image first
+            using var pdfStream = file.OpenReadStream();
+            using var imageStream = await pdfToImageService.ConvertFirstPageToImage(pdfStream);
+            
+            // Analyze the converted image
+            result = await fastTextractService.AnalyzeDocumentSync(file, imageStream);
+        }
+        else
+        {
+            // Process image file directly (existing logic)
+            result = await fastTextractService.AnalyzeDocumentSync(file);
+        }
 
         context.Response.StatusCode = 200;
         context.Response.ContentType = "application/json";

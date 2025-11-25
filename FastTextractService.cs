@@ -14,22 +14,34 @@ namespace HealthCardApi.Services
             _textract = textract;
         }
 
-        // Synchronous document analysis - much faster for simple documents
+        // Original method - for direct file processing (images)
         public async Task<AnalysisResult> AnalyzeDocumentSync(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is empty.");
 
-            // Convert file to memory stream for direct processing
             using var stream = new MemoryStream();
             await file.CopyToAsync(stream);
-            stream.Position = 0; // Reset stream position
+            stream.Position = 0;
+
+            return await AnalyzeDocumentSync(stream);
+        }
+
+        // NEW OVERLOAD: For stream processing (PDF converted to images)
+        public async Task<AnalysisResult> AnalyzeDocumentSync(Stream fileStream)
+        {
+            if (fileStream == null || fileStream.Length == 0)
+                throw new ArgumentException("File stream is empty.");
+
+            // Ensure stream is at the beginning
+            if (fileStream.CanSeek)
+                fileStream.Position = 0;
 
             var request = new DetectDocumentTextRequest
             {
                 Document = new Document
                 {
-                    Bytes = stream
+                    Bytes = (MemoryStream)fileStream
                 }
             };
 
@@ -47,6 +59,14 @@ namespace HealthCardApi.Services
                 RawText = rawText,
                 StructuredData = structuredData
             };
+        }
+
+        // NEW OVERLOAD: For PDF processing with original file info
+        public async Task<AnalysisResult> AnalyzeDocumentSync(IFormFile file, Stream fileStream)
+        {
+            // Use the stream version - ignore the IFormFile for processing
+            // but we keep the parameter for interface consistency
+            return await AnalyzeDocumentSync(fileStream);
         }
 
         private string ExtractTextFromBlocks(List<Block> blocks)

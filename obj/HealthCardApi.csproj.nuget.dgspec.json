@@ -54,6 +54,18 @@
             "AWSSDK.Textract": {
               "target": "Package",
               "version": "[3.7.400, )"
+            },
+            "PdfPig": {
+              "target": "Package",
+              "version": "[0.1.8, )"
+            },
+            "SkiaSharp": {
+              "target": "Package",
+              "version": "[2.88.7, )"
+            },
+            "SkiaSharp.NativeAssets.Linux.NoDependencies": {
+              "target": "Package",
+              "version": "[2.88.7, )"
             }
           },
           "imports": [
