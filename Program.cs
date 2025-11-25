@@ -21,6 +21,8 @@ builder.Services.AddAWSService<IAmazonTextract>();
 builder.Services.AddSingleton<FastTextractService>(); 
 builder.Services.AddSingleton<PdfToImageService>();
 builder.Services.AddSingleton<PdfTextExtractionService>();
+builder.Services.AddSingleton<PdfTextExtractionService>();
+builder.Services.AddLogging(); // Ensure logging is configured
 
 var app = builder.Build();
 
