@@ -30,6 +30,10 @@ app.UseCors("AllowAll");
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
+// Register the new service
+builder.Services.AddSingleton<PdfTextExtractionService>();
+
+// Update your extract endpoint
 app.MapPost("/extract", async (HttpContext context) =>
 {
     var form = await context.Request.ReadFormAsync();
@@ -46,18 +50,16 @@ app.MapPost("/extract", async (HttpContext context) =>
     {
         var fastTextractService = context.RequestServices.GetRequiredService<FastTextractService>();
         var pdfToImageService = context.RequestServices.GetRequiredService<PdfToImageService>();
+        var pdfTextExtractionService = context.RequestServices.GetRequiredService<PdfTextExtractionService>();
         
         AnalysisResult result;
         
         // Check if file is PDF
         if (pdfToImageService.IsPdfFile(file))
         {
-            // Convert PDF to image first
+            // Use direct PDF text extraction (Option 2)
             using var pdfStream = file.OpenReadStream();
-            using var imageStream = await pdfToImageService.ConvertFirstPageToImage(pdfStream);
-            
-            // Analyze the converted image
-            result = await fastTextractService.AnalyzeDocumentSync(file, imageStream);
+            result = await pdfTextExtractionService.ExtractFromPdf(pdfStream);
         }
         else
         {
@@ -65,6 +67,7 @@ app.MapPost("/extract", async (HttpContext context) =>
             result = await fastTextractService.AnalyzeDocumentSync(file);
         }
 
+        // Your existing response code...
         context.Response.StatusCode = 200;
         context.Response.ContentType = "application/json";
         
@@ -91,7 +94,7 @@ app.MapPost("/extract", async (HttpContext context) =>
         "gender": "{{result.StructuredData["gender"]}}"
                     },
         "message": "Processing completed successfully.",
-        "processingTime": "fast_sync"
+        "processingTime": "{{(pdfToImageService.IsPdfFile(file) ? "pdf_direct" : "fast_sync")}}"
         }
 """);   
     }
@@ -101,7 +104,6 @@ app.MapPost("/extract", async (HttpContext context) =>
         await context.Response.WriteAsync($"Error processing document: {ex.Message}");
     }
 });
-
 app.MapGet("/travel-info", async (HttpContext context) =>
 {
     var response = new

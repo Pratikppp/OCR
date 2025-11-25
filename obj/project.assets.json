@@ -802,11 +802,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Projects\\HealthCardApi\\HealthCardApi.csproj",
+      "projectUniqueName": "C:\\Projects\\HealthCardApi\\HealthCardApi.csproj",
       "projectName": "HealthCardApi",
-      "projectPath": "c:\\Projects\\HealthCardApi\\HealthCardApi.csproj",
+      "projectPath": "C:\\Projects\\HealthCardApi\\HealthCardApi.csproj",
       "packagesPath": "C:\\Users\\10020892\\.nuget\\packages\\",
-      "outputPath": "c:\\Projects\\HealthCardApi\\obj\\",
+      "outputPath": "C:\\Projects\\HealthCardApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\10020892\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -882,7 +882,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.415/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.416/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
