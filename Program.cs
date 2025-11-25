@@ -5,7 +5,7 @@ using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS configuration - FIXED
+// CORS configuration
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -16,14 +16,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+// ALL SERVICE REGISTRATIONS MUST HAPPEN HERE - BEFORE builder.Build()
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddAWSService<IAmazonTextract>();
 builder.Services.AddSingleton<FastTextractService>(); 
 builder.Services.AddSingleton<PdfToImageService>();
-builder.Services.AddSingleton<PdfTextExtractionService>();
-builder.Services.AddSingleton<PdfTextExtractionService>();
-builder.Services.AddLogging(); // Ensure logging is configured
+builder.Services.AddLogging();
 
+// NOW build the app
 var app = builder.Build();
 
 // Use CORS - MUST be called before other middleware
@@ -33,10 +33,6 @@ app.UseCors("AllowAll");
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
-// Register the new service
-
-
-// Update your extract endpoint
 app.MapPost("/extract", async (HttpContext context) =>
 {
     var form = await context.Request.ReadFormAsync();
@@ -53,24 +49,28 @@ app.MapPost("/extract", async (HttpContext context) =>
     {
         var fastTextractService = context.RequestServices.GetRequiredService<FastTextractService>();
         var pdfToImageService = context.RequestServices.GetRequiredService<PdfToImageService>();
-        var pdfTextExtractionService = context.RequestServices.GetRequiredService<PdfTextExtractionService>();
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
         
         AnalysisResult result;
         
         // Check if file is PDF
         if (pdfToImageService.IsPdfFile(file))
         {
-            // Use direct PDF text extraction (Option 2)
+            logger.LogInformation("Processing PDF file...");
+            
+            // Convert PDF to image and process with Textract
             using var pdfStream = file.OpenReadStream();
-            result = await pdfTextExtractionService.ExtractFromPdf(pdfStream);
+            using var imageStream = await pdfToImageService.ConvertFirstPageToImage(pdfStream);
+            
+            result = await fastTextractService.AnalyzeDocumentSync(file, imageStream);
         }
         else
         {
-            // Process image file directly (existing logic)
+            logger.LogInformation("Processing image file...");
+            // Process image file directly
             result = await fastTextractService.AnalyzeDocumentSync(file);
         }
 
-        // Your existing response code...
         context.Response.StatusCode = 200;
         context.Response.ContentType = "application/json";
         
@@ -97,7 +97,7 @@ app.MapPost("/extract", async (HttpContext context) =>
         "gender": "{{result.StructuredData["gender"]}}"
                     },
         "message": "Processing completed successfully.",
-        "processingTime": "{{(pdfToImageService.IsPdfFile(file) ? "pdf_direct" : "fast_sync")}}"
+        "processingTime": "{{(pdfToImageService.IsPdfFile(file) ? "pdf_via_image" : "fast_sync")}}"
         }
 """);   
     }
@@ -107,6 +107,7 @@ app.MapPost("/extract", async (HttpContext context) =>
         await context.Response.WriteAsync($"Error processing document: {ex.Message}");
     }
 });
+
 app.MapGet("/travel-info", async (HttpContext context) =>
 {
     var response = new

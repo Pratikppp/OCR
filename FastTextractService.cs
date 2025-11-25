@@ -27,7 +27,7 @@ namespace HealthCardApi.Services
             return await AnalyzeDocumentSync(stream);
         }
 
-        // NEW OVERLOAD: For stream processing (PDF converted to images)
+        // For stream processing (PDF converted to images)
         public async Task<AnalysisResult> AnalyzeDocumentSync(Stream fileStream)
         {
             if (fileStream == null || fileStream.Length == 0)
@@ -61,7 +61,7 @@ namespace HealthCardApi.Services
             };
         }
 
-        // NEW OVERLOAD: For PDF processing with original file info
+        // For PDF processing with original file info
         public async Task<AnalysisResult> AnalyzeDocumentSync(IFormFile file, Stream fileStream)
         {
             // Use the stream version - ignore the IFormFile for processing
