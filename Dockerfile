@@ -20,7 +20,7 @@ RUN dotnet publish HealthCardApi.csproj -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Install SkiaSharp dependencies for PDF processing
+# Install SkiaSharp dependencies (still needed for fallback)
 RUN apt-get update && \
     apt-get install -y libfontconfig1 libfreetype6 libharfbuzz0b && \
     rm -rf /var/lib/apt/lists/*
@@ -31,4 +31,6 @@ COPY --from=build /app/publish .
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+# The container needs outbound internet access for ConvertAPI
 ENTRYPOINT ["dotnet", "HealthCardApi.dll"]

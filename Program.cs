@@ -20,6 +20,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddAWSService<IAmazonTextract>();
 builder.Services.AddSingleton<FastTextractService>(); 
+builder.Services.AddHttpClient<ConvertApiHttpService>();
+builder.Services.AddSingleton<ConvertApiHttpService>();
 builder.Services.AddSingleton<PdfToImageService>();
 builder.Services.AddLogging();
 
@@ -56,17 +58,18 @@ app.MapPost("/extract", async (HttpContext context) =>
         // Check if file is PDF
         if (pdfToImageService.IsPdfFile(file))
         {
-            logger.LogInformation("Processing PDF file...");
+            logger.LogInformation($"Processing PDF file: {file.FileName}");
             
-            // Convert PDF to image and process with Textract
+            // Convert PDF to image using ConvertAPI
             using var pdfStream = file.OpenReadStream();
-            using var imageStream = await pdfToImageService.ConvertFirstPageToImage(pdfStream);
+            using var imageStream = await pdfToImageService.ConvertFirstPageToImage(pdfStream, file.FileName);
             
+            // Process the converted image with Textract
             result = await fastTextractService.AnalyzeDocumentSync(file, imageStream);
         }
         else
         {
-            logger.LogInformation("Processing image file...");
+            logger.LogInformation($"Processing image file: {file.FileName}");
             // Process image file directly
             result = await fastTextractService.AnalyzeDocumentSync(file);
         }
@@ -97,16 +100,25 @@ app.MapPost("/extract", async (HttpContext context) =>
         "gender": "{{result.StructuredData["gender"]}}"
                     },
         "message": "Processing completed successfully.",
-        "processingTime": "{{(pdfToImageService.IsPdfFile(file) ? "pdf_via_image" : "fast_sync")}}"
+        "processingTime": "{{(pdfToImageService.IsPdfFile(file) ? "pdf_via_convertapi" : "fast_sync")}}",
+        "fileType": "{{(pdfToImageService.IsPdfFile(file) ? "pdf" : "image")}}"
         }
 """);   
     }
     catch (Exception ex)
     {
         context.Response.StatusCode = 500;
-        await context.Response.WriteAsync($"Error processing document: {ex.Message}");
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync($$"""
+        {
+            "error": "Processing failed",
+            "message": "{{ex.Message}}",
+            "details": "Please ensure your file is a valid health card image or PDF"
+        }
+        """);
     }
 });
+
 
 app.MapGet("/travel-info", async (HttpContext context) =>
 {
@@ -151,6 +163,49 @@ app.MapGet("/travel-info", async (HttpContext context) =>
     
     context.Response.ContentType = "application/json";
     await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+});
+
+// Health check endpoint
+app.MapGet("/health", async (HttpContext context) =>
+{
+    var convertApiService = context.RequestServices.GetRequiredService<ConvertApiHttpService>();
+    var isConvertApiHealthy = await convertApiService.IsApiKeyValid();
+    
+    return new
+    {
+        status = "Healthy",
+        convertApi = isConvertApiHealthy ? "Connected" : "Unavailable",
+        timestamp = DateTime.UtcNow
+    };
+});
+
+// Add this debug endpoint to see what's happening
+app.MapPost("/debug-pdf", async (HttpContext context) =>
+{
+    var form = await context.Request.ReadFormAsync();
+    var file = form.Files["file"];
+    
+    if (file == null || file.Length == 0)
+        return Results.BadRequest("No file uploaded");
+
+    try
+    {
+        var convertApiService = context.RequestServices.GetRequiredService<ConvertApiHttpService>();
+        using var pdfStream = file.OpenReadStream();
+        
+        var debugInfo = await convertApiService.DebugConvertApiResponse(pdfStream, file.FileName);
+        
+        return Results.Json(new
+        {
+            fileName = file.FileName,
+            fileSize = file.Length,
+            debugInfo = debugInfo
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Debug failed: {ex.Message}");
+    }
 });
 
 app.Run();
